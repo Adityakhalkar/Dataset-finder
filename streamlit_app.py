@@ -1,6 +1,7 @@
 import streamlit as st
-from transformers import pipeline
 import pandas as pd
+from transformers import pipeline
+
 
 # Load the zero-shot classification model
 classifier = pipeline("zero-shot-classification",
