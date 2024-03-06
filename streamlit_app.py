@@ -1,40 +1,58 @@
-import altair as alt
-import numpy as np
-import pandas as pd
 import streamlit as st
+from transformers import pipeline
+import pandas as pd
 
-"""
-# Welcome to Streamlit!
+# Load the zero-shot classification model
+classifier = pipeline("zero-shot-classification",
+                      model="facebook/bart-large-mnli")
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+# Sample dataset (replace this with your actual dataset)
+df = pd.read_csv('datasets.csv')
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+# Function to find tags and relevant datasets
+def tag_finder(user_input):
+    keywords = df['Keyword'].unique()
+    result = classifier(user_input, keywords)
+    threshold = result['scores'][0]
+    for score in result['scores']:
+        if score == threshold:
+            continue
+        if (threshold - score) >= threshold / 10:
+            threshold = score
+        else:
+            break
+    useful_tags = [result['labels'][idx] for idx, score in enumerate(result['scores']) if score >= threshold]
+    relevant_datasets = []
+    for tag in useful_tags:
+        relevant_datasets.extend(df[df['Keyword'] == tag]['Datasets'].tolist())
+    return useful_tags, relevant_datasets
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+# Define the Streamlit app
+def main():
+    # Set title and description
+    st.title("Dataset Tagging System")
+    st.write("Enter your text below and get relevant tags for your dataset.")
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+    # Get user input
+    user_input = st.text_input("Enter your text:")
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+    if st.button("Submit"):
+        # Find relevant tags and datasets
+        relevant_tags, relevant_datasets = tag_finder(user_input)
+        
+        # Display relevant tags
+        if relevant_tags:
+            st.success("Relevant tags:")
+            for tag in relevant_tags:
+                st.write(tag)
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+            # Display datasets corresponding to relevant tags
+            st.subheader("Datasets:")
+            for dataset in relevant_datasets:
+                st.write(dataset)
+        else:
+            st.warning("No relevant tags found.")
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+# Run the app
+if __name__ == "__main__":
+    main()
