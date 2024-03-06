@@ -11,6 +11,7 @@ classifier = pipeline("zero-shot-classification",
 df = pd.read_csv('datasets.csv')
 
 # Function to find tags and relevant datasets
+@st.cache
 def tag_finder(user_input):
     keywords = df['Keyword'].unique()
     result = classifier(user_input, keywords)
