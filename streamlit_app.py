@@ -2,16 +2,13 @@ import streamlit as st
 import pandas as pd
 from transformers import pipeline
 
-
 # Load the zero-shot classification model
 classifier = pipeline("zero-shot-classification",
                       model="facebook/bart-large-mnli")
 
 # Sample dataset (replace this with your actual dataset)
-df = pd.read_csv('datasets.csv')
+df = pd.read_csv('/content/Dataset-finder/datasets.csv')
 
-# Function to find tags and relevant datasets
-@st.cache
 def tag_finder(user_input):
     keywords = df['Keyword'].unique()
     result = classifier(user_input, keywords)
@@ -44,14 +41,15 @@ def main():
         
         # Display relevant tags
         if relevant_tags:
-            st.success("Relevant tags:")
-            for tag in relevant_tags:
-                st.write(tag)
-
-            # Display datasets corresponding to relevant tags
             st.subheader("Datasets:")
             for dataset in relevant_datasets:
-                st.write(dataset)
+                tag = df[df['Datasets'] == dataset]['Keyword'].iloc[0]
+                st.markdown(f'''
+                    <div style="border: 2px solid #555; border-radius: 10px; padding: 10px; margin-bottom: 10px; background-color: #333; color: white;">
+                        <div>{dataset}</div>
+                        <div style="border: 1px solid #666; padding: 5px; background-color: #444;">{tag}</div>
+                    </div>
+                ''', unsafe_allow_html=True)
         else:
             st.warning("No relevant tags found.")
 
