@@ -31,7 +31,6 @@ def main():
     # Set title and description
     st.title("Dataset Tagging System")
     st.write("Enter your text below and get relevant tags for your dataset.")
-
     # Get user input
     user_input = st.text_input("Enter your text:")
 
@@ -45,10 +44,14 @@ def main():
             for dataset in relevant_datasets:
                 tag = df[df['Datasets'] == dataset]['Keyword'].iloc[0]
                 st.markdown(f'''
-                    <div style="border: 2px solid #555; border-radius: 10px; padding: 10px; margin-bottom: 10px; background-color: #333; color: white;">
-                        <div>{dataset}</div>
-                        <div style="border: 1px solid #666; padding: 5px; background-color: #444;">{tag}</div>
+                    <div style="border: 2px solid #555; border-radius: 10px; padding: 10px; margin-bottom: 10px; background-color: #333; color: white; display: flex; justify-content: space-between; align-items: center;">
+                       <div>{dataset}</div>
+                       <div style="padding: 5px 10px; border: #fff 2px solid; border-radius: 5px;transition: background-color 0.3s;"><a href="https://datasetsearch.research.google.com/search?search&src=0&query={dataset}" style = "text-decoration: none; color: white;">link</a></div>
+                      <div style="border: 1px solid #666; padding: 5px; background-color: #444; border-radius: 12px;">
+                          <img width="20" height="20" style="margin: 5px;" src="https://img.icons8.com/ios/50/ffffff/price-tag--v2.png" alt="price-tag--v2"/>{tag}
+                      </div>
                     </div>
+
                 ''', unsafe_allow_html=True)
         else:
             st.warning("No relevant tags found.")
